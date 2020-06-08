@@ -137,6 +137,8 @@ def main():
     args.distributed = args.world_size > 1 or args.multiprocessing_distributed
     ngpus_per_node = torch.cuda.device_count()
 
+    # ======= SPLIT TO MULTIPLE WQRKERS =========
+
     if args.multiprocessing_distributed:
         # Since we have ngpus_per_node processes per node, the total world_size
         # needs to be adjusted accordingly
@@ -148,6 +150,7 @@ def main():
         # Simply call main_worker function
         main_worker(args.gpu, ngpus_per_node, args)
 
+ # ======= EVERY WORKER WILL EXECUTE THIS SEPARATELY (ON DIFFERENT GPU) =========
 
 def main_worker(gpu, ngpus_per_node, args):
     args.gpu = gpu
@@ -166,7 +169,7 @@ def main_worker(gpu, ngpus_per_node, args):
             args.rank = int(os.environ["RANK"])
         if args.multiprocessing_distributed:
             # For multiprocessing distributed training, rank needs to be the
-            # global rank among all the processes
+            # global rank among all the processes --> PROCESS_ID
             args.rank = args.rank * ngpus_per_node + gpu
         dist.init_process_group(backend=args.dist_backend, init_method=args.dist_url,
                                 world_size=args.world_size, rank=args.rank)
